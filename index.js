@@ -7,7 +7,7 @@ const userRoutes = require("./routes/user-routes");
 const HttpError = require("./models/http-error");
 
 const app = express();
-
+mongoose.set("strictQuery", false);
 app.use(bodyParser.json());
 
 app.use((req, res, next) => {
@@ -39,10 +39,11 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    `mongodb+srv://BIJAY:bijay@cluster0.9cee2bs.mongodb.net/mern?retryWrites=true&w=majority`
+    "mongodb+srv://BIJAY:C4EvNJEJvcHeQXvT@cluster0.dka1gve.mongodb.net/?retryWrites=true&w=majority"
   )
   .then(() => {
     app.listen(5000);
+    console.log("Connected");
   })
   .catch((err) => {
     console.log(err);
