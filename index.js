@@ -39,7 +39,7 @@ app.use((error, req, res, next) => {
 
 mongoose
   .connect(
-    "mongodb+srv://BIJAY:C4EvNJEJvcHeQXvT@cluster0.dka1gve.mongodb.net/?retryWrites=true&w=majority"
+    "mongodb+srv://BIJAY:C4EvNJEJvcHeQXvT@cluster0.dka1gve.mongodb.net/users?retryWrites=true&w=majority"
   )
   .then(() => {
     app.listen(5000);
@@ -47,4 +47,5 @@ mongoose
   })
   .catch((err) => {
     console.log(err);
+    console.log("Not Connected!");
   });
