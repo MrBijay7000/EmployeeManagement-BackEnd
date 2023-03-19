@@ -1,5 +1,6 @@
 const Admin = require("../models/admin-model");
 const Job = require("../models/jobs-model");
+const User = require("../models/user-model");
 const HttpError = require("../models/http-error");
 
 exports.getAdminUser = async (req, res, next) => {
@@ -80,4 +81,66 @@ exports.deleteTask = async (req, res, next) => {
     return next(error);
   }
   res.status(200).json({ message: "Deleted place." });
+};
+
+exports.viewAllEmployes = async (req, res, next) => {
+  let users;
+  try {
+    users = await User.find({});
+  } catch (err) {
+    const error = new HttpError(
+      "Fetching employee failed, please try again later",
+      500
+    );
+    return next(error);
+  }
+  res.json({
+    users: users.map((user) =>
+      user.toObject({
+        getters: true,
+      })
+    ),
+  });
+};
+
+exports.viewEmployeById = async (req, res, next) => {
+  const employeeId = req.params.eid;
+
+  let employee;
+
+  try {
+    employee = await User.findById(employeeId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find employee by this id",
+      500
+    );
+    return next(error);
+  }
+  if (!employee) {
+    const error = new HttpError("Could not find employee for this id", 404);
+    return next(error);
+  }
+  res.json({ employee: employee.toObject({ getters: true }) });
+};
+
+exports.createEmployee = async (req, res, next) => {
+  const { name, email, password } = req.body;
+
+  const createdEmployes = new User({
+    name,
+    email,
+    password,
+    admin,
+  });
+  try {
+    await createdEmployes.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Creating employee failed, please try again.",
+      500
+    );
+    return next(error);
+  }
+  res.status(201).json({ employes: createdEmployes });
 };

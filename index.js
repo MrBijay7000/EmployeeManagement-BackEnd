@@ -42,7 +42,7 @@ mongoose
     "mongodb+srv://BIJAY:C4EvNJEJvcHeQXvT@cluster0.dka1gve.mongodb.net/users?retryWrites=true&w=majority"
   )
   .then(() => {
-    app.listen(5000);
+    app.listen(5001);
     console.log("Connected");
   })
   .catch((err) => {

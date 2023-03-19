@@ -9,4 +9,10 @@ router.post("/createTask", adminControllers.createTask);
 
 router.delete("/:jid", adminControllers.deleteTask);
 
+router.get("/viewAllEmployee", adminControllers.viewAllEmployes);
+
+router.get("/employee/:eid", adminControllers.viewEmployeById);
+
+router.post("/addEmployes", adminControllers.createEmployee);
+
 module.exports = router;
