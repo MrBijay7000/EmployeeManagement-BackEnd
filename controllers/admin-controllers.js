@@ -1,5 +1,5 @@
 const Admin = require("../models/admin-model");
-const Job = require("../models/jobs-model");
+const Task = require("../models/tasks-model");
 const User = require("../models/user-model");
 const HttpError = require("../models/http-error");
 
@@ -25,7 +25,7 @@ exports.getAdminUser = async (req, res, next) => {
 
 exports.createTask = async (req, res, next) => {
   const { title, description, startDate, endDate } = req.body;
-  const task = new Job({
+  const task = new Task({
     title,
     description,
     startDate,
@@ -49,11 +49,11 @@ exports.createTask = async (req, res, next) => {
 };
 
 exports.deleteTask = async (req, res, next) => {
-  const jobId = req.params.jid;
+  const taskId = req.params.tid;
 
-  let job;
+  let task;
   try {
-    job = await Job.findById(jobId);
+    task = await Task.findById(taskId);
   } catch (err) {
     const error = new HttpError(
       "Something wentt wrong, could not delete place",
@@ -62,13 +62,13 @@ exports.deleteTask = async (req, res, next) => {
     return next(error);
   }
 
-  if (!job) {
+  if (!task) {
     const error = new HttpError("Could not find job details for this id", 404);
     return next(error);
   }
 
   try {
-    job = Job.deleteOne(jobId).then((result) => {
+    task = await Task.deleteOne(taskId).then((result) => {
       res.status(200).json({
         message: "Delete Successfully!",
       });
@@ -80,7 +80,7 @@ exports.deleteTask = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(200).json({ message: "Deleted place." });
+  res.status(200).json({ message: "Task deleted." });
 };
 
 exports.viewAllEmployes = async (req, res, next) => {

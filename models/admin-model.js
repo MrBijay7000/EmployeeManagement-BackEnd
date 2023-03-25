@@ -6,7 +6,13 @@ const adminSchema = new Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true, minlength: 6 },
-  user: [{ type: mongoose.Types.ObjectId, required: true, ref: "User" }],
+  role: {
+    type: String,
+    enum: ["admin", "employee"],
+    default: "admin",
+    required: true,
+  },
+  // user: [{ type: mongoose.Types.ObjectId, required: true, ref: "User" }],
 });
 
 adminSchema.plugin(uniqueValidator);

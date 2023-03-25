@@ -1,11 +1,14 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const User = require("../models/user-model");
 const Admin = require("../models/admin-model");
-const Job = require("../models/jobs-model");
+const Task = require("../models/tasks-model");
 const Leave = require("../models/leave-model");
 const HttpError = require("../models/http-error");
 
 exports.signUp = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
@@ -22,10 +25,19 @@ exports.signUp = async (req, res, next) => {
     return next(error);
   }
 
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    const error = new HttpError("Could not create user, please try again", 500);
+    return next(error);
+  }
+
   const createdUser = new User({
     name,
     email,
-    password,
+    password: hashedPassword,
+    role,
   });
 
   try {
@@ -35,10 +47,22 @@ exports.signUp = async (req, res, next) => {
     return next(error);
   }
 
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      "supersecret",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError("Signing in failed, please try again.", 500);
+    return next(error);
+  }
+
   res.status(201).json({
-    user: createdUser.toObject({
-      getters: true,
-    }),
+    userId: createdUser.id,
+    email: createdUser.email,
+    token: token,
   });
 };
 
@@ -53,7 +77,7 @@ exports.login = async (req, res, next) => {
     return next(error);
   }
 
-  if (!existingUser || existingUser.password !== password) {
+  if (!existingUser) {
     const error = new HttpError(
       "Invalid Credentials, could not log you in",
       401
@@ -61,7 +85,42 @@ exports.login = async (req, res, next) => {
     return next(error);
   }
 
-  res.json({ message: "Logged in!" });
+  let isValidPassword = false;
+  try {
+    isValidPassword = await bcrypt.compare(password, existingUser.password);
+  } catch (err) {
+    const error = new HttpError(
+      "Could not log you in, invalid Credentials",
+      500
+    );
+    return next(error);
+  }
+
+  if (!isValidPassword) {
+    const error = new HttpError(
+      "Invalid Credentials, could not log you in",
+      401
+    );
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: existingUser.id, email: existingUser.email },
+      "supersecret",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError("Logging in failed, please try again.", 500);
+    return next(error);
+  }
+
+  res.json({
+    userId: existingUser.id,
+    email: existingUser.email,
+    token: token,
+  });
 };
 
 exports.getUsers = async (req, res, next) => {
@@ -88,7 +147,7 @@ exports.getUsers = async (req, res, next) => {
 exports.viewTask = async (req, res, next) => {
   let tasks;
   try {
-    tasks = await Job.find({});
+    tasks = await Task.find({});
   } catch (err) {
     const error = new HttpError("Could not find the job", 500);
     return next(error);
@@ -108,7 +167,7 @@ exports.viewTaskById = async (req, res, next) => {
   let task;
 
   try {
-    task = await User.findById(taskId);
+    task = await Task.findById(taskId);
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find task by this id",
