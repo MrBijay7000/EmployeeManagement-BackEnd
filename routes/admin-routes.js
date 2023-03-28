@@ -7,7 +7,7 @@ router.get("/", adminControllers.getAdminUser);
 
 router.post("/createTask", adminControllers.createTask);
 
-router.delete("/:jid", adminControllers.deleteTask);
+router.delete("/:tid", adminControllers.deleteTask);
 
 router.get("/viewAllEmployee", adminControllers.viewAllEmployes);
 

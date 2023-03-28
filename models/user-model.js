@@ -11,6 +11,7 @@ const userSchema = new Schema({
     type: String,
     enum: ["admin", "employee"],
     required: true,
+    default: "employee",
   },
   // admin: { type: mongoose.Types.ObjectId, required: true, ref: "Admin" },
 });
