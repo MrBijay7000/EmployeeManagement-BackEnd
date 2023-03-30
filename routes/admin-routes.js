@@ -15,4 +15,6 @@ router.get("/employee/:eid", adminControllers.viewEmployeById);
 
 router.post("/addEmployes", adminControllers.createEmployee);
 
+router.get("/viewAllLeave", adminControllers.viewAllLeave);
+
 module.exports = router;

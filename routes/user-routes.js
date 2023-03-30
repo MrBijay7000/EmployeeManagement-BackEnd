@@ -7,12 +7,14 @@ router.post("/signup", usersControllers.signUp);
 
 router.post("/login", usersControllers.login);
 
-router.use(checkAuth);
-
 router.get("/", usersControllers.getUsers);
 
 router.get("/viewTask", usersControllers.viewTask);
 
 router.get("/:tid", usersControllers.viewTaskById);
+
+router.post("/applyForLeave", usersControllers.applyForLeave);
+
+router.use(checkAuth);
 
 module.exports = router;

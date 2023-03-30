@@ -13,6 +13,7 @@ const userSchema = new Schema({
     required: true,
     default: "employee",
   },
+  image: { type: String, required: true },
   // admin: { type: mongoose.Types.ObjectId, required: true, ref: "Admin" },
 });
 

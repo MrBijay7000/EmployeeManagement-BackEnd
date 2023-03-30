@@ -1,6 +1,7 @@
 const Admin = require("../models/admin-model");
 const Task = require("../models/tasks-model");
 const User = require("../models/user-model");
+const Leave = require("../models/leave-model");
 const HttpError = require("../models/http-error");
 
 exports.getAdminUser = async (req, res, next) => {
@@ -24,21 +25,23 @@ exports.getAdminUser = async (req, res, next) => {
 };
 
 exports.createTask = async (req, res, next) => {
-  const { title, description, startDate, endDate } = req.body;
+  const { title, description, startDate, endDate, status } = req.body;
   const task = new Task({
     title,
     description,
     startDate,
     endDate,
+    status,
   });
 
-  task.save().then((task) => {
+  await task.save().then((task) => {
     const obj = {
       id: task._id,
       title: task.title,
       description: task.description,
       startDate: task.startDate,
       endDate: task.endDate,
+      status: task.status,
     };
 
     res.json({
@@ -56,7 +59,7 @@ exports.deleteTask = async (req, res, next) => {
     task = await Task.findById(taskId);
   } catch (err) {
     const error = new HttpError(
-      "Something wentt wrong, could not delete place",
+      "Something went wrong, could not delete task",
       500
     );
     return next(error);
@@ -131,7 +134,6 @@ exports.createEmployee = async (req, res, next) => {
     name,
     email,
     password,
-    admin,
   });
   try {
     await createdEmployes.save();
@@ -143,4 +145,24 @@ exports.createEmployee = async (req, res, next) => {
     return next(error);
   }
   res.status(201).json({ employes: createdEmployes });
+};
+
+exports.viewAllLeave = async (req, res, next) => {
+  let users;
+  try {
+    users = await Leave.find({});
+  } catch (err) {
+    const error = new HttpError(
+      "Fetching leave failed, please try again later",
+      500
+    );
+    return next(error);
+  }
+  res.json({
+    users: users.map((user) =>
+      user.toObject({
+        getters: true,
+      })
+    ),
+  });
 };

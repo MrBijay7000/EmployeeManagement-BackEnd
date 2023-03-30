@@ -6,6 +6,11 @@ const taskSchema = new Schema({
   description: { type: String, required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },
+  status: {
+    type: String,
+    enum: ["Not started", "In progress", "Completed"],
+    default: "Not started",
+  },
 });
 
 module.exports = mongoose.model("Task", taskSchema);

@@ -2,7 +2,6 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/user-model");
-const Admin = require("../models/admin-model");
 const Task = require("../models/tasks-model");
 const Leave = require("../models/leave-model");
 const HttpError = require("../models/http-error");
@@ -38,6 +37,8 @@ exports.signUp = async (req, res, next) => {
     email,
     password: hashedPassword,
     role,
+    image:
+      "https://img.freepik.com/premium-vector/freelance-sticker-logo-icon-vector-man-with-desktop-blogger-with-laptop-icon-vector-isolated-background-eps-10_399089-1098.jpg",
   });
 
   try {
@@ -180,4 +181,29 @@ exports.viewTaskById = async (req, res, next) => {
     return next(error);
   }
   res.json({ task: task.toObject({ getters: true }) });
+};
+
+exports.applyForLeave = async (req, res, next) => {
+  const { employee, startDate, endDate, appliedDate, reason } = req.body;
+  const appliedLeave = new Leave({
+    employee,
+    startDate,
+    endDate,
+    appliedDate,
+    reason,
+  });
+
+  await appliedLeave.save().then((leave) => {
+    const obj = {
+      id: leave._id,
+      employee: leave.employee,
+      startDate: leave.startDate,
+      endDate: leave.endDate,
+      reason: leave.reason,
+    };
+    res.json({
+      message: "Leave Applied",
+      appliedLeave: obj,
+    });
+  });
 };
