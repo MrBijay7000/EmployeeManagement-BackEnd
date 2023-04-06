@@ -184,9 +184,9 @@ exports.viewTaskById = async (req, res, next) => {
 };
 
 exports.applyForLeave = async (req, res, next) => {
-  const { employee, startDate, endDate, appliedDate, reason } = req.body;
+  const { employeeId, startDate, endDate, appliedDate, reason } = req.body;
   const appliedLeave = new Leave({
-    employee,
+    employeeId,
     startDate,
     endDate,
     appliedDate,
@@ -196,7 +196,7 @@ exports.applyForLeave = async (req, res, next) => {
   await appliedLeave.save().then((leave) => {
     const obj = {
       id: leave._id,
-      employee: leave.employee,
+      employeeId: leave.employeeId,
       startDate: leave.startDate,
       endDate: leave.endDate,
       reason: leave.reason,
