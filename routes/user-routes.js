@@ -9,6 +9,8 @@ router.post("/login", usersControllers.login);
 
 router.get("/", usersControllers.getUsers);
 
+router.get("/:eid", usersControllers.getUserById);
+
 router.get("/viewTask", usersControllers.viewTask);
 
 router.get("/:tid", usersControllers.viewTaskById);

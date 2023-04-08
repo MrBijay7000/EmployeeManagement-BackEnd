@@ -145,6 +145,30 @@ exports.getUsers = async (req, res, next) => {
   });
 };
 
+exports.getUserById = async (req, res, next) => {
+  const employeeId = req.params.eid;
+
+  let user;
+  try {
+    user = await User.findById(employeeId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find user",
+      500
+    );
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError(
+      "Could not find user for the provided id.",
+      404
+    );
+    return next(error);
+  }
+  res.json({ user: user.toObject({ getters: true }) });
+};
+
 exports.viewTask = async (req, res, next) => {
   let tasks;
   try {

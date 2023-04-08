@@ -1,8 +1,75 @@
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 const Admin = require("../models/admin-model");
 const Task = require("../models/tasks-model");
 const User = require("../models/user-model");
 const Leave = require("../models/leave-model");
 const HttpError = require("../models/http-error");
+
+exports.signUp = async (req, res, next) => {
+  const { name, email, password, role } = req.body;
+  let existingUser;
+  try {
+    existingUser = await Admin.findOne({ email: email });
+  } catch (err) {
+    const error = new HttpError("Signing in failed", 500);
+    return next(error);
+  }
+
+  if (existingUser) {
+    const error = new HttpError(
+      "Admin exists already, please login instead",
+      422
+    );
+    return next(error);
+  }
+
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    const error = new HttpError(
+      "Could not create admin, please try again",
+      500
+    );
+    return next(error);
+  }
+
+  const createdUser = new Admin({
+    name,
+    email,
+    password: hashedPassword,
+    role,
+    image:
+      "https://img.freepik.com/premium-vector/freelance-sticker-logo-icon-vector-man-with-desktop-blogger-with-laptop-icon-vector-isolated-background-eps-10_399089-1098.jpg",
+  });
+
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError("Signing in failed, please try again.", 500);
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      "supersecret",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError("Signing in failed, please try again.", 500);
+    return next(error);
+  }
+
+  res.status(201).json({
+    userId: createdUser.id,
+    email: createdUser.email,
+    token: token,
+  });
+};
 
 exports.getAdminUser = async (req, res, next) => {
   let users;
@@ -25,22 +92,22 @@ exports.getAdminUser = async (req, res, next) => {
 };
 
 exports.createTask = async (req, res, next) => {
-  const { title, description, startDate, endDate, status } = req.body;
+  const { employeeId, title, description, taskgivendate, status } = req.body;
   const task = new Task({
+    employeeId,
     title,
     description,
-    startDate,
-    endDate,
+    taskgivendate,
     status,
   });
 
   await task.save().then((task) => {
     const obj = {
       id: task._id,
+      employeeId: task.employeeId,
       title: task.title,
       description: task.description,
-      startDate: task.startDate,
-      endDate: task.endDate,
+      taskgivendate: task.taskgivendate,
       status: task.status,
     };
 
@@ -48,6 +115,23 @@ exports.createTask = async (req, res, next) => {
       message: "Task Created",
       createdTasks: obj,
     });
+  });
+};
+
+exports.taskGiven = async (req, res, next) => {
+  let tasks;
+  try {
+    tasks = await Task.find({});
+  } catch (err) {
+    const error = new HttpError("Could not find the job", 500);
+    return next(error);
+  }
+  res.json({
+    tasks: tasks.map((task) =>
+      task.toObject({
+        getters: true,
+      })
+    ),
   });
 };
 
@@ -78,13 +162,22 @@ exports.deleteTask = async (req, res, next) => {
     });
   } catch (err) {
     const error = new HttpError(
-      "Something went wrongs, could not delete place",
+      "Something went wrongs, could not delete task",
       500
     );
     return next(error);
   }
   res.status(200).json({ message: "Task deleted." });
 };
+
+// exports.deleteTask = (req, res, next) => {
+//   Task.deleteOne({ _id: req.params.id }).then((result) => {
+//     console.log({ result });
+//     res.status(200).json({
+//       message: "Products Delete Successfully!",
+//     });
+//   });
+// };
 
 exports.viewAllEmployes = async (req, res, next) => {
   let users;
