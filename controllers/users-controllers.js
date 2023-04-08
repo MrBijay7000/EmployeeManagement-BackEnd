@@ -64,6 +64,7 @@ exports.signUp = async (req, res, next) => {
     userId: createdUser.id,
     email: createdUser.email,
     token: token,
+    role: createdUser.role,
   });
 };
 
@@ -121,6 +122,7 @@ exports.login = async (req, res, next) => {
     userId: existingUser.id,
     email: existingUser.email,
     token: token,
+    role: existingUser.role,
   });
 };
 
