@@ -65,6 +65,7 @@ exports.signUp = async (req, res, next) => {
     email: createdUser.email,
     token: token,
     role: createdUser.role,
+    expiresIn: 3600,
   });
 };
 
@@ -123,6 +124,7 @@ exports.login = async (req, res, next) => {
     email: existingUser.email,
     token: token,
     role: existingUser.role,
+    expiresIn: 3600,
   });
 };
 
