@@ -155,7 +155,7 @@ exports.deleteTask = async (req, res, next) => {
   }
 
   try {
-    task = await Task.deleteOne(taskId).then((result) => {
+    task = await Task.deleteOne({ _id: taskId }).then((result) => {
       res.status(200).json({
         message: "Delete Successfully!",
       });
@@ -165,19 +165,50 @@ exports.deleteTask = async (req, res, next) => {
       "Something went wrongs, could not delete task",
       500
     );
+
     return next(error);
   }
   res.status(200).json({ message: "Task deleted." });
 };
 
-// exports.deleteTask = (req, res, next) => {
-//   Task.deleteOne({ _id: req.params.id }).then((result) => {
-//     console.log({ result });
-//     res.status(200).json({
-//       message: "Products Delete Successfully!",
-//     });
-//   });
-// };
+exports.deleteEmployee = async (req, res, next) => {
+  const empId = req.params.eid;
+
+  let employee;
+  try {
+    employee = await User.findById(empId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not delete employee",
+      500
+    );
+    return next(error);
+  }
+
+  if (!employee) {
+    const error = new HttpError(
+      "Could not find employee details for this id",
+      404
+    );
+    return next(error);
+  }
+
+  try {
+    employee = await User.deleteOne({ _id: empId }).then((result) => {
+      res.status(200).json({
+        message: "Delete Successfully!",
+      });
+    });
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrongs, could not delete employee",
+      500
+    );
+
+    return next(error);
+  }
+  res.status(200).json({ message: "Employee deleted." });
+};
 
 exports.viewAllEmployes = async (req, res, next) => {
   let users;

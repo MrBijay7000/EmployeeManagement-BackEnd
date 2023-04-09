@@ -13,6 +13,8 @@ router.get("/taskGiven", adminControllers.taskGiven);
 
 router.delete("/:tid", adminControllers.deleteTask);
 
+router.delete("/employee/:eid", adminControllers.deleteEmployee);
+
 router.get("/viewAllEmployee", adminControllers.viewAllEmployes);
 
 router.get("/employee/:eid", adminControllers.viewEmployeById);
