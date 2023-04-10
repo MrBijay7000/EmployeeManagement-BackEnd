@@ -155,19 +155,15 @@ exports.deleteTask = async (req, res, next) => {
   }
 
   try {
-    task = await Task.deleteOne({ _id: taskId }).then((result) => {
-      res.status(200).json({
-        message: "Delete Successfully!",
-      });
-    });
+    await Task.deleteOne({ _id: taskId });
   } catch (err) {
     const error = new HttpError(
       "Something went wrongs, could not delete task",
       500
     );
-
     return next(error);
   }
+
   res.status(200).json({ message: "Task deleted." });
 };
 
@@ -194,11 +190,7 @@ exports.deleteEmployee = async (req, res, next) => {
   }
 
   try {
-    employee = await User.deleteOne({ _id: empId }).then((result) => {
-      res.status(200).json({
-        message: "Delete Successfully!",
-      });
-    });
+    employee = await User.deleteOne({ _id: empId });
   } catch (err) {
     const error = new HttpError(
       "Something went wrongs, could not delete employee",
@@ -231,12 +223,12 @@ exports.viewAllEmployes = async (req, res, next) => {
 };
 
 exports.viewEmployeById = async (req, res, next) => {
-  const employeeId = req.params.eid;
+  const employeesId = req.params.eid;
 
   let employee;
 
   try {
-    employee = await User.findById(employeeId);
+    employee = await User.findById(employeesId);
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find employee by this id",
@@ -252,15 +244,17 @@ exports.viewEmployeById = async (req, res, next) => {
 };
 
 exports.createEmployee = async (req, res, next) => {
-  const { name, email, password } = req.body;
+  const { name, email, password, role } = req.body;
 
-  const createdEmployes = new User({
+  const createdEmployee = new User({
     name,
     email,
     password,
+    role,
   });
+
   try {
-    await createdEmployes.save();
+    await createdEmployee.save();
   } catch (err) {
     const error = new HttpError(
       "Creating employee failed, please try again.",
@@ -268,7 +262,16 @@ exports.createEmployee = async (req, res, next) => {
     );
     return next(error);
   }
-  res.status(201).json({ employes: createdEmployes });
+
+  res.status(201).json({
+    message: "Employee created successfully!",
+    employee: {
+      id: createdEmployee._id,
+      name: createdEmployee.name,
+      email: createdEmployee.email,
+      role: createdEmployee.role,
+    },
+  });
 };
 
 exports.viewAllLeave = async (req, res, next) => {

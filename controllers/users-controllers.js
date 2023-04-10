@@ -154,7 +154,7 @@ exports.getUserById = async (req, res, next) => {
 
   let user;
   try {
-    user = await User.findById(employeeId);
+    user = await User.findById(employeeId, "-password");
   } catch (err) {
     const error = new HttpError(
       "Something went wrong, could not find users",
