@@ -7,7 +7,7 @@ const Leave = require("../models/leave-model");
 const HttpError = require("../models/http-error");
 
 exports.signUp = async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, email, password, address, phone, dob, role } = req.body;
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
@@ -35,6 +35,10 @@ exports.signUp = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
+    address,
+    phone,
+    dob,
+
     password: hashedPassword,
     role,
     image:
@@ -44,7 +48,8 @@ exports.signUp = async (req, res, next) => {
   try {
     await createdUser.save();
   } catch (err) {
-    const error = new HttpError("Signing in failed, please try again.", 500);
+    const error = new HttpError("Signing in failed, pleease try again.", 500);
+    console.log({ err });
     return next(error);
   }
 
@@ -212,26 +217,33 @@ exports.viewTaskById = async (req, res, next) => {
 };
 
 exports.applyForLeave = async (req, res, next) => {
-  const { employeeId, startDate, endDate, appliedDate, reason } = req.body;
-  const appliedLeave = new Leave({
-    employeeId,
-    startDate,
-    endDate,
-    appliedDate,
-    reason,
-  });
+  const { employeeId, startDate, endDate, appliedDate, reason, status } =
+    req.body;
+  try {
+    const appliedLeave = new Leave({
+      employeeId,
+      startDate,
+      endDate,
+      appliedDate,
+      reason,
+      status,
+    });
 
-  await appliedLeave.save().then((leave) => {
+    const leave = await appliedLeave.save();
     const obj = {
       id: leave._id,
       employeeId: leave.employeeId,
       startDate: leave.startDate,
       endDate: leave.endDate,
       reason: leave.reason,
+      status: leave.status,
     };
+
     res.json({
       message: "Leave Applied",
       appliedLeave: obj,
     });
-  });
+  } catch (err) {
+    next(err);
+  }
 };

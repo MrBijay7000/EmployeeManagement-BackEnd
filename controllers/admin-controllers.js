@@ -245,34 +245,113 @@ exports.viewEmployeById = async (req, res, next) => {
 
 exports.createEmployee = async (req, res, next) => {
   const { name, email, password, role } = req.body;
-
-  const createdEmployee = new User({
-    name,
-    email,
-    password,
-    role,
-  });
-
+  let existingUser;
   try {
-    await createdEmployee.save();
+    existingUser = await User.findOne({ email: email });
   } catch (err) {
+    const error = new HttpError("Signing in failed", 500);
+    return next(error);
+  }
+
+  if (existingUser) {
     const error = new HttpError(
-      "Creating employee failed, please try again.",
-      500
+      "User exists already, please login instead",
+      422
     );
     return next(error);
   }
 
+  let hashedPassword;
+  try {
+    hashedPassword = await bcrypt.hash(password, 12);
+  } catch (err) {
+    const error = new HttpError("Could not create user, please try again", 500);
+    return next(error);
+  }
+
+  const createdUser = new User({
+    name,
+    email,
+    password: hashedPassword,
+    role,
+    image:
+      "https://img.freepik.com/premium-vector/freelance-sticker-logo-icon-vector-man-with-desktop-blogger-with-laptop-icon-vector-isolated-background-eps-10_399089-1098.jpg",
+  });
+
+  try {
+    await createdUser.save();
+  } catch (err) {
+    const error = new HttpError("Signing in failed, please try again.", 500);
+    return next(error);
+  }
+
+  let token;
+  try {
+    token = jwt.sign(
+      { userId: createdUser.id, email: createdUser.email },
+      "supersecret",
+      { expiresIn: "1h" }
+    );
+  } catch (err) {
+    const error = new HttpError("Signing in failed, please try again.", 500);
+    return next(error);
+  }
+
   res.status(201).json({
-    message: "Employee created successfully!",
-    employee: {
-      id: createdEmployee._id,
-      name: createdEmployee.name,
-      email: createdEmployee.email,
-      role: createdEmployee.role,
-    },
+    userId: createdUser.id,
+    email: createdUser.email,
+    token: token,
+    role: createdUser.role,
+    expiresIn: 3600,
   });
 };
+
+// exports.createEmployee = async (req, res, next) => {
+//   const { name, email, password, role } = req.body;
+
+//   const createdEmployee = new User({
+//     name,
+//     email,
+//     password,
+//     role,
+//     image:
+//       "https://img.freepik.com/premium-vector/freelance-sticker-logo-icon-vector-man-with-desktop-blogger-with-laptop-icon-vector-isolated-background-eps-10_399089-1098.jpg",
+//   });
+
+//   await createdEmployee.save().then((employee) => {
+//     const obj = {
+//       id: employee._id,
+//       name: employee.name,
+//       email: employee.email,
+//       password: employee.password,
+//       role: employee.role,
+//     };
+//     res.json({
+//       message: "Employee Created",
+//       createdEmployees: obj,
+//     });
+//   });
+// };
+//   try {
+//     await createdEmployee.save();
+//   } catch (err) {
+//     const error = new HttpError(
+//       "Creating employee failed, please try again.",
+//       500
+//     );
+//     return next(error);
+//   }
+
+//   res.status(201).json({
+//     message: "Employee created successfully!",
+//     employee: {
+//       id: createdEmployee._id,
+//       name: createdEmployee.name,
+//       email: createdEmployee.email,
+//       role: createdEmployee.role,
+//     },
+//   });
+// };
 
 exports.viewAllLeave = async (req, res, next) => {
   let users;
