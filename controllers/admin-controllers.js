@@ -92,30 +92,47 @@ exports.getAdminUser = async (req, res, next) => {
 };
 
 exports.createTask = async (req, res, next) => {
-  const { employeeId, title, description, taskgivendate, status } = req.body;
-  const task = new Task({
-    employeeId,
-    title,
-    description,
-    taskgivendate,
-    status,
-  });
+  try {
+    const {
+      employeeId,
+      title,
+      description,
+      taskgivendate,
+      status,
+      dueDate,
+      priority,
+    } = req.body;
 
-  await task.save().then((task) => {
+    const task = new Task({
+      employeeId,
+      title,
+      description,
+      taskgivendate,
+      status,
+      dueDate,
+      priority,
+    });
+
+    const createdTask = await task.save();
     const obj = {
-      id: task._id,
-      employeeId: task.employeeId,
-      title: task.title,
-      description: task.description,
-      taskgivendate: task.taskgivendate,
-      status: task.status,
+      id: createdTask._id,
+      employeeId: createdTask.employeeId,
+      title: createdTask.title,
+      description: createdTask.description,
+      taskgivendate: createdTask.taskgivendate,
+      status: createdTask.status,
+      dueDate: createdTask.dueDate,
+      priority: createdTask.priority,
     };
 
     res.json({
       message: "Task Created",
-      createdTasks: obj,
+      createdTask: obj,
     });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Creating task failed" });
+  }
 };
 
 exports.taskGiven = async (req, res, next) => {
@@ -244,7 +261,8 @@ exports.viewEmployeById = async (req, res, next) => {
 };
 
 exports.createEmployee = async (req, res, next) => {
-  const { name, email, password, role } = req.body;
+  const { name, address, phone, dateofbirth, email, hireDate, password, role } =
+    req.body;
   let existingUser;
   try {
     existingUser = await User.findOne({ email: email });
@@ -272,6 +290,10 @@ exports.createEmployee = async (req, res, next) => {
   const createdUser = new User({
     name,
     email,
+    address,
+    phone,
+    dateofbirth,
+    hireDate,
     password: hashedPassword,
     role,
     image:
@@ -281,7 +303,8 @@ exports.createEmployee = async (req, res, next) => {
   try {
     await createdUser.save();
   } catch (err) {
-    const error = new HttpError("Signing in failed, please try again.", 500);
+    const error = new HttpError("Creating user failed, please try again.", 500);
+    console.log({ err });
     return next(error);
   }
 
@@ -306,53 +329,6 @@ exports.createEmployee = async (req, res, next) => {
   });
 };
 
-// exports.createEmployee = async (req, res, next) => {
-//   const { name, email, password, role } = req.body;
-
-//   const createdEmployee = new User({
-//     name,
-//     email,
-//     password,
-//     role,
-//     image:
-//       "https://img.freepik.com/premium-vector/freelance-sticker-logo-icon-vector-man-with-desktop-blogger-with-laptop-icon-vector-isolated-background-eps-10_399089-1098.jpg",
-//   });
-
-//   await createdEmployee.save().then((employee) => {
-//     const obj = {
-//       id: employee._id,
-//       name: employee.name,
-//       email: employee.email,
-//       password: employee.password,
-//       role: employee.role,
-//     };
-//     res.json({
-//       message: "Employee Created",
-//       createdEmployees: obj,
-//     });
-//   });
-// };
-//   try {
-//     await createdEmployee.save();
-//   } catch (err) {
-//     const error = new HttpError(
-//       "Creating employee failed, please try again.",
-//       500
-//     );
-//     return next(error);
-//   }
-
-//   res.status(201).json({
-//     message: "Employee created successfully!",
-//     employee: {
-//       id: createdEmployee._id,
-//       name: createdEmployee.name,
-//       email: createdEmployee.email,
-//       role: createdEmployee.role,
-//     },
-//   });
-// };
-
 exports.viewAllLeave = async (req, res, next) => {
   let users;
   try {
@@ -371,4 +347,126 @@ exports.viewAllLeave = async (req, res, next) => {
       })
     ),
   });
+};
+
+// exports.updateUser = async (req, res, next) => {
+//   const { name, address, phone, dateofbirth, email } = req.body;
+
+//   const userId = req.params.empId;
+
+//   let user;
+//   try {
+//     user = await User.findOne({ email: email });
+//   } catch (err) {
+//     const error = new HttpError("Changing details of users failed", 500);
+//     return next(error);
+//   }
+
+//   if (user) {
+//     const error = new HttpError("User exists already", 422);
+//     console.log({ error });
+//     return next(error);
+//   }
+
+//   try {
+//     user = await User.findById(userId);
+//   } catch (err) {
+//     const error = new HttpError(
+//       "Something went wrong,could not update user.",
+//       500
+//     );
+//     return next(error);
+//   }
+//   user.name = name;
+//   user.address = address;
+//   user.phone = phone;
+//   user.dateofbirth = dateofbirth;
+//   user.email = email;
+
+//   try {
+//     await user.save();
+//   } catch (err) {
+//     const error = new HttpError(
+//       "Something went wrong,could not update user.",
+//       500
+//     );
+//     return next(error);
+//   }
+
+//   res.status(200).json({ user: user.toObject({ getters: true }) });
+// };
+exports.updateUser = async (req, res, next) => {
+  const { name, address, phone, dateofbirth, email } = req.body;
+  const userId = req.params.employeeId;
+
+  let user;
+  try {
+    user = await User.findById(userId);
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not find the user.",
+      500
+    );
+    return next(error);
+  }
+
+  if (!user) {
+    const error = new HttpError("User not found.", 404);
+    return next(error);
+  }
+
+  user.name = name;
+  user.address = address;
+  user.phone = phone;
+  user.dateofbirth = dateofbirth;
+  user.email = email;
+
+  try {
+    await user.save();
+  } catch (err) {
+    const error = new HttpError(
+      "Something went wrong, could not update user.",
+      500
+    );
+    return next(error);
+  }
+
+  res.status(200).json({ user: user.toObject({ getters: true }) });
+};
+
+exports.changePassword = async (req, res, next) => {
+  const { oldPassword, newPassword } = req.body;
+  const userId = req.user.id; // Assuming you have stored the user ID in the request object after authentication
+
+  try {
+    const user = await User.findById(userId);
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Invalid old password" });
+    }
+
+    // Hash the new password
+    let hashedPassword;
+    try {
+      hashedPassword = await bcrypt.hash(newPassword, password, 12);
+    } catch (err) {
+      const error = new HttpError(
+        "Could not create user, please try again",
+        500
+      );
+      return next(error);
+    }
+    // const salt = await bcrypt.genSalt(10);
+    // const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Update the user's password in the database
+    user.password = hashedPassword;
+    await user.save();
+
+    res.json({ message: "Password changed successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server Error" });
+  }
 };

@@ -7,7 +7,7 @@ const userSchema = new Schema({
   name: { type: String, required: true },
   address: { type: String, required: true },
   phone: { type: String, required: true },
-  dob: { type: Date, required: true },
+  dateofbirth: { type: Date, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true, minlength: 6 },
   hireDate: { type: Date },
@@ -18,7 +18,6 @@ const userSchema = new Schema({
     default: "employee",
   },
   image: { type: String, required: true },
-  // admin: { type: mongoose.Types.ObjectId, required: true, ref: "Admin" },
 });
 
 userSchema.plugin(uniqueValidator);

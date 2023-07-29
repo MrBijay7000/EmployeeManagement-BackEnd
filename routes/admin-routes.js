@@ -1,4 +1,6 @@
 const express = require("express");
+const checkAuth = require("../middleware/check-auth");
+
 const adminControllers = require("../controllers/admin-controllers");
 
 const router = express.Router();
@@ -22,5 +24,11 @@ router.get("/employee/:eid", adminControllers.viewEmployeById);
 router.post("/addEmployes", adminControllers.createEmployee);
 
 router.get("/viewAllLeave", adminControllers.viewAllLeave);
+
+router.patch("/updateUsers/:employeeId", adminControllers.updateUser);
+
+router.post("/changePassword/:id", adminControllers.changePassword);
+
+// router.use(checkAuth);
 
 module.exports = router;
